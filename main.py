@@ -7,8 +7,7 @@ from telegram.ext import (
     filters
 )
 import os
-
-TOKEN = os.getenv("BOT_TOKEN", "9076497920:AAEsBr0JTKdFPV705yrOXRIxXIw5-ZiITLA")
+TOKEN = os.getenv("BOT_9076497920:AAEsBr0JTKdFPV705yrOXRIxXIw5-ZiITLA")
 
 
 # START FUNKSIYASI
