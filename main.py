@@ -6,8 +6,9 @@ from telegram.ext import (
     ContextTypes,
     filters
 )
+import os
 
-TOKEN = "9076497920:AAEqqyrmURvnYJAWztGkFeR_OaNspyO5YZA"
+TOKEN = os.getenv("BOT_TOKEN", "9076497920:AAEsBr0JTKdFPV705yrOXRIxXIw5-ZiITLA")
 
 
 # START FUNKSIYASI
