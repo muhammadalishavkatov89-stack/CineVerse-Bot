@@ -35,20 +35,24 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
+
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text
 
     if text == "🔎 Kino qidirish":
+        context.user_data["searching_movie"] = True
         await update.message.reply_text(
             "🔎 Qidirmoqchi bo‘lgan kino nomini yozing!"
         )
 
     elif text == "⭐ Mashhur kinolar":
+        context.user_data["searching_movie"] = False
         await update.message.reply_text(
             "⭐ Mashhur kinolar bo‘limi tez orada!"
         )
 
     elif text == "🎞 Janrlar":
+        context.user_data["searching_movie"] = False
         await update.message.reply_text(
             "🎞 Kino janrlari:\n"
             "• Komediya\n"
@@ -58,14 +62,22 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
     elif text == "ℹ️ Bot haqida":
+        context.user_data["searching_movie"] = False
         await update.message.reply_text(
             "🎬 CineVerse — kino olamiga xush kelibsiz!"
+        )
+
+    elif context.user_data.get("searching_movie"):
+        await update.message.reply_text(
+            f"🔎 Siz qidirayotgan kino: {text}\n\n"
+            "🎬 Kino qidirish tizimi tez orada ishga tushadi!"
         )
 
     else:
         await update.message.reply_text(
             "Iltimos, pastdagi tugmalardan birini tanlang."
         )
+
 
 
 async def telegram_webhook(request):
