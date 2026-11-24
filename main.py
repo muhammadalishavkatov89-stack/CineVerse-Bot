@@ -1,4 +1,6 @@
 import os
+import asyncio
+import httpx
 from aiohttp import web
 from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import (
@@ -10,12 +12,40 @@ from telegram.ext import (
 )
 
 TOKEN = os.getenv("BOT_TOKEN")
+ADMIN_ID = 8850722729
 WEBHOOK_PATH = "/telegram"
 PORT = int(os.getenv("PORT", 10000))
 BASE_URL = os.getenv("RENDER_EXTERNAL_URL")
 
 app = Application.builder().token(TOKEN).build()
+MOVIES = [
+    {
+        "title": "Avatar",
+        "year": 2009,
+        "genre": "Fantastika",
+        "description": "Pandora sayyorasidagi sarguzasht."
+    },
+    {
+        "title": "Titanic",
+        "year": 1997,
+        "genre": "Drama",
+        "description": "Tarixiy kema sayohati haqidagi film."
+    },
+    {
+        "title": "The Lion King",
+        "year": 1994,
+        "genre": "Animatsiya",
+        "description": "Sher bolasi Simba haqidagi hikoya."
+    }
+]
+def search_movie(query):
+    results = []
 
+    for movie in MOVIES:
+        if query.lower() in movie["title"].lower():
+            results.append(movie)
+
+    return results
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
@@ -35,9 +65,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
-
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    text = update.message.text
+    text = update.message.text.strip()
 
     if text == "🔎 Kino qidirish":
         context.user_data["searching_movie"] = True
@@ -68,10 +97,20 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
     elif context.user_data.get("searching_movie"):
-        await update.message.reply_text(
-            f"🔎 Siz qidirayotgan kino: {text}\n\n"
-            "🎬 Kino qidirish tizimi tez orada ishga tushadi!"
-        )
+        results = search_movie(text)
+
+        if results:
+            for movie in results:
+                await update.message.reply_text(
+                    f"🎬 {movie['title']}\n"
+                    f"📅 Yili: {movie['year']}\n"
+                    f"🎭 Janri: {movie['genre']}\n"
+                    f"📝 {movie['description']}"
+                )
+        else:
+            await update.message.reply_text(
+                "😔 Bu nomdagi kino topilmadi."
+            )
 
     else:
         await update.message.reply_text(
@@ -79,6 +118,20 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
 
+
+async def admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+
+    if user_id != ADMIN_ID:
+        await update.message.reply_text(
+            "⛔ Sizda admin huquqi mavjud emas!"
+        )
+        return
+
+    await update.message.reply_text(
+        "🔐 CineVerse Admin Paneliga xush kelibsiz!\n\n"
+        "🎬 Admin boshqaruv paneli tayyorlanmoqda."
+    )
 
 async def telegram_webhook(request):
     data = await request.json()
@@ -106,6 +159,7 @@ async def main():
         raise RuntimeError("BOT_TOKEN yoki RENDER_EXTERNAL_URL topilmadi")
 
     app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("admin", admin_panel))
     app.add_handler(
         MessageHandler(filters.TEXT & ~filters.COMMAND, button_handler)
     )
